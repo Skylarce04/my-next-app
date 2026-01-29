@@ -19,6 +19,9 @@ export default async function Home() {
     .select("*")
     .single()
 
+  console.log("HERO DATA:", heroData)
+  console.log("HERO ERROR:", heroError)
+  
   if (heroError) {
     console.log("Hero error:", heroError)
   }
