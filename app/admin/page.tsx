@@ -1,12 +1,14 @@
 "use client"
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+// import { supabase } from "@/lib/supabase"
+import { getSupabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRef } from "react"
 
 export default function AdminPage() {
+  const supabase = getSupabase() 
   const router = useRouter()
   const { toast } = useToast()
 
