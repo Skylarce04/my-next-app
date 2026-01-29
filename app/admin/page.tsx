@@ -23,6 +23,10 @@ export default function AdminPage() {
   const [heroPreview, setHeroPreview] = useState<string | null>(null)
   const [currentHeroImage, setCurrentHeroImage] = useState<string | null>(null)
   const [heroInputKey, setHeroInputKey] = useState(Date.now())
+  const [heroVideoFile, setHeroVideoFile] = useState<File | null>(null)
+  const [heroVideoPreview, setHeroVideoPreview] = useState<string | null>(null)
+  const [currentHeroVideo, setCurrentHeroVideo] = useState<string | null>(null)
+
   
 
 
@@ -75,6 +79,9 @@ export default function AdminPage() {
     setSubtitle(data.subtitle || "")
     setCurrentHeroImage(data.image_url || null)
     setHeroPreview(data.image_url || null)
+
+    setCurrentHeroVideo(data.video_url || null)
+    setHeroVideoPreview(data.video_url || null)
   }
 }
 
@@ -99,7 +106,9 @@ export default function AdminPage() {
   setLoading(true)
 
   let imageUrl = currentHeroImage
+  let videoUrl = currentHeroVideo   // ⬅️ TAMBAHAN
 
+  // ===== UPLOAD IMAGE =====
   if (heroImageFile) {
     const fileName = `hero-${Date.now()}`
 
@@ -109,7 +118,7 @@ export default function AdminPage() {
 
     if (uploadError) {
       toast({
-        title: "Upload gagal",
+        title: "Upload gambar gagal",
         description: uploadError.message,
         variant: "destructive",
       })
@@ -124,6 +133,32 @@ export default function AdminPage() {
     imageUrl = data.publicUrl
   }
 
+  // ===== UPLOAD VIDEO =====
+  if (heroVideoFile) {
+    const fileName = `hero-video-${Date.now()}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("hero-videos")
+      .upload(fileName, heroVideoFile)
+
+    if (uploadError) {
+      toast({
+        title: "Upload video gagal",
+        description: uploadError.message,
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    const { data } = supabase.storage
+      .from("hero-videos")
+      .getPublicUrl(fileName)
+
+    videoUrl = data.publicUrl
+  }
+
+  // ===== UPDATE DATABASE =====
   const { error } = await supabase
     .from("hero")
     .update({
@@ -131,6 +166,7 @@ export default function AdminPage() {
       title,
       subtitle,
       image_url: imageUrl,
+      video_url: videoUrl,   // ⬅️ TAMBAHAN
     })
     .eq("id", 1)
 
@@ -150,13 +186,14 @@ export default function AdminPage() {
     description: "Hero berhasil diperbarui.",
   })
 
-  // reset file input
   setHeroImageFile(null)
+  setHeroVideoFile(null)
   setHeroPreview(null)
-  // if (heroFileRef.current) heroFileRef.current.value = ""
+  setHeroVideoPreview(null)
 
   fetchHero()
 }
+
 
 
   // ================= EVENTS =================
@@ -708,6 +745,32 @@ export default function AdminPage() {
         </div>
       )}
     </div>
+
+    {/* ===== UPLOAD VIDEO ===== */}
+      <div className="space-y-2 mt-6">
+        <label className="text-sm font-medium">Upload Video</label>
+
+        <input
+          type="file"
+          accept="video/mp4"
+          onChange={(e) => {
+            if (e.target.files) {
+              const file = e.target.files[0]
+              setHeroVideoFile(file)
+              setHeroVideoPreview(URL.createObjectURL(file))
+            }
+          }}
+          className="w-full border rounded-md p-2"
+        />
+
+        {heroVideoPreview && (
+          <video
+            src={heroVideoPreview}
+            controls
+            className="mt-4 w-full max-h-60 object-cover rounded-md"
+          />
+        )}
+      </div>
 
     {/* ===== BUTTONS ===== */}
     <div className="flex gap-3 mt-6">
