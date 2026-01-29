@@ -6,10 +6,12 @@ import { MinistriesSection } from "@/components/ministries-section"
 import { EventsSection } from "@/components/events-section"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
-import { supabase } from "@/lib/supabase"
+// import { supabase } from "@/lib/supabase"
+import { getSupabase } from "@/lib/supabase"
 import { FloatingWhatsApp } from "@/components/floating-whatsapp"
 
 export default async function Home() {
+  const supabase = getSupabase()
   // ===== FETCH HERO =====
   const { data: heroData, error: heroError } = await supabase
     .from("hero")
