@@ -19,15 +19,13 @@ export default function AdminPage() {
   const [tagline, setTagline] = useState("")
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
-  const [heroImageFile, setHeroImageFile] = useState<File | null>(null)
-  const [heroPreview, setHeroPreview] = useState<string | null>(null)
-  const [currentHeroImage, setCurrentHeroImage] = useState<string | null>(null)
-  const [heroInputKey, setHeroInputKey] = useState(Date.now())
-  const [heroVideoFile, setHeroVideoFile] = useState<File | null>(null)
-  const [heroVideoPreview, setHeroVideoPreview] = useState<string | null>(null)
-  const [currentHeroVideo, setCurrentHeroVideo] = useState<string | null>(null)
 
-  
+  const [heroFile, setHeroFile] = useState<File | null>(null)
+  const [heroPreview, setHeroPreview] = useState<string | null>(null)
+
+  const [currentMediaUrl, setCurrentMediaUrl] = useState<string | null>(null)
+  const [currentMediaType, setCurrentMediaType] = useState<string>("image")
+
 
 
   // ================= EVENTS =================
@@ -77,14 +75,13 @@ export default function AdminPage() {
     setTagline(data.tagline || "")
     setTitle(data.title || "")
     setSubtitle(data.subtitle || "")
-    setCurrentHeroImage(data.image_url || null)
-    setHeroPreview(data.image_url || null)
 
-    setCurrentHeroVideo(data.video_url || null)
-    setHeroVideoPreview(data.video_url || null)
+    setCurrentMediaUrl(data.media_url || null)
+    setCurrentMediaType(data.media_type || "image")
+
+    setHeroPreview(data.media_url || null)
+    }
   }
-}
-
 
   const fetchEvents = async () => {
     const { data } = await supabase.from("events").select("*").order("date")
@@ -104,21 +101,23 @@ export default function AdminPage() {
   // ================= HERO SAVE =================
   const handleSaveHero = async () => {
   setLoading(true)
+  console.log("Selected file:", heroFile)
+  console.log("File type:", heroFile?.type)
+  let mediaUrl = currentMediaUrl
+  let mediaType = currentMediaType
 
-  let imageUrl = currentHeroImage
-  let videoUrl = currentHeroVideo   // ⬅️ TAMBAHAN
-
-  // ===== UPLOAD IMAGE =====
-  if (heroImageFile) {
+  if (heroFile) {
+    const isVideo = heroFile.type.startsWith("video/")
+    const bucket = isVideo ? "hero-videos" : "hero-images"
     const fileName = `hero-${Date.now()}`
 
     const { error: uploadError } = await supabase.storage
-      .from("hero-images")
-      .upload(fileName, heroImageFile)
+      .from(bucket)
+      .upload(fileName, heroFile)
 
     if (uploadError) {
       toast({
-        title: "Upload gambar gagal",
+        title: "Upload gagal",
         description: uploadError.message,
         variant: "destructive",
       })
@@ -127,46 +126,21 @@ export default function AdminPage() {
     }
 
     const { data } = supabase.storage
-      .from("hero-images")
+      .from(bucket)
       .getPublicUrl(fileName)
 
-    imageUrl = data.publicUrl
+    mediaUrl = data.publicUrl
+    mediaType = isVideo ? "video" : "image"
   }
 
-  // ===== UPLOAD VIDEO =====
-  if (heroVideoFile) {
-    const fileName = `hero-video-${Date.now()}`
-
-    const { error: uploadError } = await supabase.storage
-      .from("hero-videos")
-      .upload(fileName, heroVideoFile)
-
-    if (uploadError) {
-      toast({
-        title: "Upload video gagal",
-        description: uploadError.message,
-        variant: "destructive",
-      })
-      setLoading(false)
-      return
-    }
-
-    const { data } = supabase.storage
-      .from("hero-videos")
-      .getPublicUrl(fileName)
-
-    videoUrl = data.publicUrl
-  }
-
-  // ===== UPDATE DATABASE =====
   const { error } = await supabase
     .from("hero")
     .update({
       tagline,
       title,
       subtitle,
-      image_url: imageUrl,
-      video_url: videoUrl,   // ⬅️ TAMBAHAN
+      media_url: mediaUrl,
+      media_type: mediaType,
     })
     .eq("id", 1)
 
@@ -186,10 +160,8 @@ export default function AdminPage() {
     description: "Hero berhasil diperbarui.",
   })
 
-  setHeroImageFile(null)
-  setHeroVideoFile(null)
-  setHeroPreview(null)
-  setHeroVideoPreview(null)
+  setHeroFile(null)
+  setHeroPreview(mediaUrl)
 
   fetchHero()
 }
@@ -515,48 +487,57 @@ export default function AdminPage() {
             <InputField label="Tagline" value={tagline} setValue={setTagline} />
             <InputField label="Title" value={title} setValue={setTitle} />
             <TextareaField label="Subtitle" value={subtitle} setValue={setSubtitle} />
-
+          
             {/* ===== UPLOAD IMAGE ===== */}
             <div className="space-y-2">
-  <label className="text-sm font-medium">Upload Image</label>
+            <label className="text-sm font-medium">
+              Upload Media (Image / Video)
+            </label>
+            
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={(e) => {
+                if (e.target.files) {
+                  const file = e.target.files[0]
+                  setHeroFile(file)
+                  setHeroPreview(URL.createObjectURL(file))
+                }
+              }}
+              className="w-full border rounded-md p-2"
+            />
 
-  <input
-    key={heroInputKey}
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-      if (e.target.files) {
-        const file = e.target.files[0]
-        setHeroImageFile(file)
-        setHeroPreview(URL.createObjectURL(file))
-      }
-    }}
-    className="w-full border rounded-md p-2"
-  />
+          {heroPreview && (
+            currentMediaType === "video" || heroFile?.type.startsWith("video/") ? (
+              <video
+                src={heroPreview}
+                controls
+                className="mt-4 w-full max-h-60 object-cover rounded-md"
+              />
+            ) : (
+              <img
+                src={heroPreview}
+                className="mt-4 w-full h-40 object-cover rounded-md"
+              />
+            )
+          )}
+          </div>
 
-  {heroPreview && (
-    <img
-      src={heroPreview}
-      className="mt-4 w-full h-40 object-cover rounded-md"
-    />
-  )}
-</div>
+          <button
+            onClick={handleSaveHero}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 transition"
+          >
+            {loading ? (
+              <Loader2 className="animate-spin w-4 h-4" />
+            ) : (
+              "Save"
+            )}
+          </button>
+                    </Card>
+                  )}
 
-            <button
-  onClick={handleSaveHero}
-  className="px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 transition"
->
-  {loading ? (
-    <Loader2 className="animate-spin w-4 h-4" />
-  ) : (
-    "Save"
-  )}
-</button>
-          </Card>
-        )}
-
-        {activeTab === "events" && (
-  <Card title="Events">
+                  {activeTab === "events" && (
+            <Card title="Events">
     <InputField
       label="Title"
       value={eventTitle}
@@ -746,31 +727,7 @@ export default function AdminPage() {
       )}
     </div>
 
-    {/* ===== UPLOAD VIDEO ===== */}
-      <div className="space-y-2 mt-6">
-        <label className="text-sm font-medium">Upload Video</label>
-
-        <input
-          type="file"
-          accept="video/mp4"
-          onChange={(e) => {
-            if (e.target.files) {
-              const file = e.target.files[0]
-              setHeroVideoFile(file)
-              setHeroVideoPreview(URL.createObjectURL(file))
-            }
-          }}
-          className="w-full border rounded-md p-2"
-        />
-
-        {heroVideoPreview && (
-          <video
-            src={heroVideoPreview}
-            controls
-            className="mt-4 w-full max-h-60 object-cover rounded-md"
-          />
-        )}
-      </div>
+    
 
     {/* ===== BUTTONS ===== */}
     <div className="flex gap-3 mt-6">

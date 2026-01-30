@@ -137,6 +137,8 @@ interface HeroProps {
     tagline: string
     title: string
     subtitle: string
+    media_url: string
+    media_type: string
   } | null
 }
 
@@ -154,9 +156,10 @@ export function HeroSection({ hero }: HeroProps) {
 
       {/* VIDEO BACKGROUND */}
       <div
-        className="absolute inset-0 z-0"
-        style={{ transform: `translateY(${offsetY * 0.3}px)` }}
-      >
+      className="absolute inset-0 z-0"
+      style={{ transform: `translateY(${offsetY * 0.3}px)` }}
+    >
+      {hero?.media_type === "video" ? (
         <video
           autoPlay
           muted
@@ -164,12 +167,19 @@ export function HeroSection({ hero }: HeroProps) {
           playsInline
           className="w-full h-full object-cover"
         >
-          <source src="/videos/hero.mp4" type="video/mp4" />
+          <source src={hero.media_url} type="video/mp4" />
         </video>
+      ) : (
+        <img
+          src={hero?.media_url}
+          className="w-full h-full object-cover"
+          alt="Hero background"
+        />
+      )}
 
-        {/* Soft Overlay (NOT too dark) */}
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
+
+  <div className="absolute inset-0 bg-black/40" />
+</div>
 
       {/* FLOATING LIGHT PARTICLES */}
       <div className="absolute inset-0 z-0 pointer-events-none">
