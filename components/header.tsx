@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,9 +16,32 @@ const navigation = [
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+useEffect(() => {
+  const scrollContainer = document.querySelector("main")
+
+  if (!scrollContainer) return
+
+  const handleScroll = () => {
+    setScrolled(scrollContainer.scrollTop > 20)
+  }
+
+  scrollContainer.addEventListener("scroll", handleScroll)
+
+  return () => {
+    scrollContainer.removeEventListener("scroll", handleScroll)
+  }
+}, [])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header
+  className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    scrolled
+      ? "bg-white shadow-lg"
+      : "bg-transparent"
+  }`}
+>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link href="/" className="flex items-center gap-2">
@@ -27,7 +50,13 @@ export function Header() {
               alt="GPdI Karmel Logo"
               className="w-10 h-10 object-contain"
             />
-            <span className="font-serif text-xl font-semibold text-foreground">GPdI Karmel Cipinang Ministries</span>
+           <span
+              className={`font-serif text-xl font-semibold ${
+                scrolled
+                  ? "text-foreground"
+                  : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+              }`}
+            >GPdI Karmel Cipinang Ministries</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -35,20 +64,27 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className={`text-sm font-medium transition-colors ${
+                  scrolled
+                    ? "text-muted-foreground hover:text-foreground"
+                    : "text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:text-white"
+                }`}
+
               >
                 {item.name}
               </Link>
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
-            <a href="#contact">
-              <Button size="sm">
-                Plan Your Visit
-              </Button>
-            </a>
-          </div>
+          {scrolled && (
+            <div className="hidden md:flex items-center gap-4">
+              <a href="#contact">
+                <Button size="sm">
+                  Plan Your Visit
+                </Button>
+              </a>
+            </div>
+          )}
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">

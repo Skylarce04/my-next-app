@@ -68,7 +68,7 @@ const { data: ministriesData } = await supabase
   //   </main>
   // )
   return (
-  <main className="h-screen overflow-y-scroll snap-y snap-proximity scroll-smooth">
+  <main className="h-screen overflow-y-scroll scroll-smooth">
     <div className="snap-start">
       <Header />
       <HeroSection hero={heroData} />

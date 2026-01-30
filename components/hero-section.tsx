@@ -178,7 +178,7 @@ export function HeroSection({ hero }: HeroProps) {
       )}
 
 
-  <div className="absolute inset-0 bg-black/40" />
+  <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-transparent" />
 </div>
 
       {/* FLOATING LIGHT PARTICLES */}
