@@ -1,75 +1,3 @@
-// import { Clock } from "lucide-react"
-
-// interface ServicesProps {
-//   services: {
-//     id: number
-//     title: string
-//     day: string
-//     time: string
-//     description: string
-//   }[]
-// }
-
-// export function ServiceTimes({ services }: ServicesProps) {
-//   return (
-//     <section
-//       id="services"
-//       className="py-24 scroll-mt-28 bg-muted"
-//     >
-//       <div className="max-w-6xl mx-auto px-4">
-//         <div className="text-center mb-16">
-//           <h2 className="text-4xl md:text-5xl font-serif font-bold">
-//             Service Times
-//           </h2>
-//         </div>
-
-//         {services.length === 0 ? (
-//           <p className="text-center text-muted-foreground">
-//             No services available.
-//           </p>
-//         ) : (
-//           <div className="grid md:grid-cols-3 gap-8">
-//             {services.map((service) => (
-//               <div
-//                 key={service.id}
-//                 className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition"
-//               >
-//                 {/* Header */}
-//                 <div className="flex items-center gap-4 mb-6">
-//                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-//                     <Clock className="w-5 h-5 text-primary" />
-//                   </div>
-
-//                   <div>
-//                     <h3 className="text-xl font-serif font-semibold">
-//                       {service.day}
-//                     </h3>
-//                     <p className="text-primary font-medium">
-//                       {service.title}
-//                     </p>
-//                   </div>
-//                 </div>
-
-//                 {/* Description */}
-//                 <p className="text-muted-foreground mb-6">
-//                   {service.description}
-//                 </p>
-
-//                 {/* Time Badge */}
-//                 <div>
-//                   <span className="inline-block bg-primary/10 text-primary font-medium px-4 py-2 rounded-full text-sm">
-//                     {service.time}
-//                   </span>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         )}
-//       </div>
-//     </section>
-//   )
-// }
-
 "use client"
 
 import useEmblaCarousel from "embla-carousel-react"
@@ -110,7 +38,7 @@ export function ServiceTimes({ services }: ServicesProps) {
   return (
     <section
       id="services"
-      className="py-32 bg-gradient-to-b from-background to-muted/40"
+      className="py-16 bg-gradient-to-b from-background to-muted/40"
     >
       <div className="max-w-6xl mx-auto px-6">
 

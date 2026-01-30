@@ -202,7 +202,7 @@ export function HeroSection({ hero }: HeroProps) {
           </p>
 
           <a
-            href="https://youtube.com/YOUR_CHANNEL"
+            href="https://www.youtube.com/@gpdikarmelcipinang8403/streams"
             target="_blank"
             rel="noopener noreferrer"
           >
