@@ -545,19 +545,43 @@ export default function AdminPage() {
               className="w-full border rounded-md p-2"
             />
 
-          {heroPreview && (
+          {/* {heroPreview && (
             currentMediaType === "video" || heroFile?.type.startsWith("video/") ? (
               <video
                 src={heroPreview}
                 controls
-                className="mt-4 w-full max-h-60 object-cover rounded-md"
+                // className="mt-4 w-full max-h-60 object-cover rounded-md"
+                className="w-full h-full object-cover"
               />
             ) : (
               <img
                 src={heroPreview}
-                className="mt-4 w-full h-40 object-cover rounded-md"
+                className="w-full h-full object-cover"
               />
             )
+          )} */}
+          {heroPreview && (
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                Current Media Preview
+              </p>
+
+              <div className="w-full max-w-md h-56 rounded-lg overflow-hidden border border-border shadow-sm bg-black">
+                {currentMediaType === "video" || heroFile?.type.startsWith("video/") ? (
+                  <video
+                    src={heroPreview}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={heroPreview}
+                    alt="Hero Preview"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+            </div>
           )}
           </div>
 
@@ -794,11 +818,16 @@ export default function AdminPage() {
 
       {ministryImagePreview && (
         <div className="mt-4">
+          <p className="text-sm text-muted-foreground mb-2">
+            Current Media Preview
+          </p>
+        <div className="w-full max-w-md h-56 rounded-lg overflow-hidden border border-border shadow-sm bg-black">
           <img
             src={ministryImagePreview}
-            className="w-full max-h-48 object-cover rounded-md"
+            className="w-full h-full object-cover"
           />
         </div>
+      </div>
       )}
     </div>
 

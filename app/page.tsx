@@ -6,7 +6,7 @@ import { AboutSection } from "@/components/about-section"
 import { MinistriesSection } from "@/components/ministries-section"
 import { EventsSection } from "@/components/events-section"
 import { ContactSection } from "@/components/contact-section"
-import { Footer } from "@/components/footer"
+import  Footer  from "@/components/footer"
 // import { supabase } from "@/lib/supabase"
 import { getSupabase } from "@/lib/supabase"
 import { FloatingWhatsApp } from "@/components/floating-whatsapp"
@@ -18,9 +18,6 @@ export default async function Home() {
     .from("hero")
     .select("*")
     .single()
-
-  console.log("HERO DATA:", heroData)
-  console.log("HERO ERROR:", heroError)
   
   if (heroError) {
     console.log("Hero error:", heroError)
