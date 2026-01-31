@@ -35,6 +35,9 @@ export default function AdminPage() {
   const [eventTime, setEventTime] = useState("")
   const [events, setEvents] = useState<any[]>([])
   const [editingEventId, setEditingEventId] = useState<number | null>(null)
+  const [eventImageFile, setEventImageFile] = useState<File | null>(null)
+  const [eventImagePreview, setEventImagePreview] = useState<string | null>(null) 
+  const [eventInputKey, setEventInputKey] = useState(Date.now())
 
   // ================= SERVICES =================
   const [serviceTitle, setServiceTitle] = useState("")
@@ -170,63 +173,98 @@ export default function AdminPage() {
 
   // ================= EVENTS =================
   const handleAddEvent = async () => {
-    if (!eventTitle || !eventDate) {
-      toast({
-        title: "Field belum lengkap",
-        description: "Title dan Date wajib diisi.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    let error
-
-    if (editingEventId) {
-      const res = await supabase
-        .from("events")
-        .update({
-          title: eventTitle,
-          description: eventDescription,
-          date: eventDate,
-          time: eventTime,
-        })
-        .eq("id", editingEventId)
-
-      error = res.error
-    } else {
-      const res = await supabase.from("events").insert([
-        {
-          title: eventTitle,
-          description: eventDescription,
-          date: eventDate,
-          time: eventTime,
-        },
-      ])
-
-      error = res.error
-    }
-
-    if (error) {
-      toast({
-        title: "Database Error",
-        description: error.message,
-        variant: "destructive",
-      })
-      return
-    }
-
+  if (!eventTitle || !eventDate) {
     toast({
-      title: editingEventId ? "Event Updated" : "Event Added",
-      description: "Berhasil disimpan.",
+      title: "Field belum lengkap",
+      description: "Title dan Date wajib diisi.",
+      variant: "destructive",
     })
-
-    setEditingEventId(null)
-    setEventTitle("")
-    setEventDescription("")
-    setEventDate("")
-    setEventTime("")
-    fetchEvents()
+    return
   }
+
+  let imageUrl: string | null = null
+  let error
+
+  // ===== UPLOAD IMAGE JIKA ADA =====
+  if (eventImageFile) {
+    const fileName = `event-${Date.now()}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("event-images")
+      .upload(fileName, eventImageFile)
+
+    if (uploadError) {
+      toast({
+        title: "Upload gagal",
+        description: uploadError.message,
+        variant: "destructive",
+      })
+      return
+    }
+
+    const { data } = supabase.storage
+      .from("event-images")
+      .getPublicUrl(fileName)
+
+    imageUrl = data.publicUrl
+  }
+
+  // ===== MODE EDIT =====
+  if (editingEventId) {
+    const res = await supabase
+      .from("events")
+      .update({
+        title: eventTitle,
+        description: eventDescription,
+        date: eventDate,
+        time: eventTime,
+        ...(imageUrl && { image_url: imageUrl }),
+      })
+      .eq("id", editingEventId)
+
+    error = res.error
+  } 
+  // ===== MODE INSERT =====
+  else {
+    const res = await supabase.from("events").insert([
+      {
+        title: eventTitle,
+        description: eventDescription,
+        date: eventDate,
+        time: eventTime,
+        image_url: imageUrl,
+      },
+    ])
+
+    error = res.error
+  }
+
+  if (error) {
+    toast({
+      title: "Database Error",
+      description: error.message,
+      variant: "destructive",
+    })
+    return
+  }
+
+  toast({
+    title: editingEventId ? "Event Updated" : "Event Added",
+    description: "Berhasil disimpan.",
+  })
+
+  setEditingEventId(null)
+  setEventTitle("")
+  setEventDescription("")
+  setEventDate("")
+  setEventTime("")
+  setEventImageFile(null)
+  setEventImagePreview(null)
+  setEventInputKey(Date.now())
+
+  fetchEvents()
+}
+
 
   const handleDeleteEvent = async (id: number) => {
     const { error } = await supabase.from("events").delete().eq("id", id)
@@ -536,32 +574,67 @@ export default function AdminPage() {
                     </Card>
                   )}
 
-                  {activeTab === "events" && (
-            <Card title="Events">
-    <InputField
-      label="Title"
-      value={eventTitle}
-      setValue={setEventTitle}
-    />
+        {activeTab === "events" && (
+                    <Card title="Events">
+            <InputField
+              label="Title"
+              value={eventTitle}
+              setValue={setEventTitle}
+            />
 
-    <TextareaField
-      label="Description"
-      value={eventDescription}
-      setValue={setEventDescription}
-    />
+            <TextareaField
+              label="Description"
+              value={eventDescription}
+              setValue={setEventDescription}
+            />
 
-    <InputField
-      label="Date"
-      value={eventDate}
-      setValue={setEventDate}
-      type="date"
-    />
+            <InputField
+              label="Date"
+              value={eventDate}
+              setValue={setEventDate}
+              type="date"
+            />
 
-    <InputField
-      label="Time"
-      value={eventTime}
-      setValue={setEventTime}
-    />
+            <InputField
+              label="Time"
+              value={eventTime}
+              setValue={setEventTime}
+            />
+
+            {/* ===== UPLOAD IMAGE ===== */}
+          <div className="space-y-2 mt-4">
+            <label className="text-sm font-medium">Upload Poster</label>
+
+            <input
+              key={eventInputKey}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files) {
+                  const file = e.target.files[0]
+                  setEventImageFile(file)
+                  setEventImagePreview(URL.createObjectURL(file))
+                }
+              }}
+              className="w-full border rounded-md p-2"
+            />
+
+            {eventImagePreview && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Current Poster (leave empty if not changing)
+                </p>
+
+                <div className="w-64 h-40 rounded-lg overflow-hidden border">
+                  <img
+                    src={eventImagePreview}
+                    alt="Poster Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
     {/* ===== BUTTON AREA ===== */}
     <div className="flex gap-3 mt-4">
@@ -603,6 +676,8 @@ export default function AdminPage() {
             setEventDate(e.date)
             setEventTime(e.time)
             setEditingEventId(e.id)
+            setEventImagePreview(e.image_url || null)
+            setEventImageFile(null)
           }}
           onDelete={() => handleDeleteEvent(e.id)}
         />
